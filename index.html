@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECB — Physical Commodities Trading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;
+  --fg:#0E1B2E;            /* blue-black ink */
+  --blue:#123B6B;          /* deep institutional primary */
+  --blue-700:#0E2E54;      /* darker hover */
+  --blue-bright:#1E5BB8;   /* secondary accent */
+  --blue-50:#F4F8FC;       /* light section bg */
+  --gray-50:#F7F9FB;
+  --gray-100:#f1f4f8;
+  --gray-200:#E3E9F1;      /* blue-gray border */
+  --gray-300:#D3DCE7;
+  --gray-400:#8C9AAD;
+  --gray-500:#5C6B80;
+  --gray-600:#3a4757;
+  --fg-soft:#2a3645;
+  --maxw:1100px;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);color:var(--fg);line-height:1.55;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+body.lang-zh{font-family:'Noto Sans SC','Inter',sans-serif}
+h1,h2,h3,h4{font-weight:600;letter-spacing:-0.03em;line-height:1.08}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.mono{font-family:var(--mono);font-weight:500;letter-spacing:0.02em}
+body.lang-zh .mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:0.06em;color:var(--blue);text-transform:uppercase}
+
+/* ---------- BUTTONS ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:500;letter-spacing:-0.01em;
+  padding:0 18px;height:42px;border-radius:8px;cursor:pointer;transition:.18s ease;border:1px solid var(--blue);white-space:nowrap;
+}
+body.lang-zh .btn{font-family:'Noto Sans SC',sans-serif}
+.btn-pri{background:var(--blue);color:#fff}
+.btn-pri:hover{background:var(--blue-700);border-color:var(--blue-700)}
+.btn-sec{background:transparent;color:var(--blue);border-color:var(--gray-300)}
+.btn-sec:hover{border-color:var(--blue);background:var(--blue-50)}
+.btn-sm{height:36px;font-size:13px;padding:0 14px}
+
+/* ---------- HEADER ---------- */
+header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.8);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid transparent;transition:border-color .3s}
+header.solid{border-bottom:1px solid var(--gray-200)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px;gap:20px}
+.brand{display:flex;align-items:center;gap:11px;cursor:pointer}
+.brand .mark{width:32px;height:32px;flex:0 0 32px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;position:relative}
+.brand .mark svg{width:18px;height:18px}
+.brand .bt{display:flex;flex-direction:column;line-height:1.05}
+.brand .bt b{font-size:15px;font-weight:700;letter-spacing:-0.02em}
+.brand .bt small{font-family:var(--mono);font-size:9px;letter-spacing:0.08em;color:var(--gray-400);text-transform:uppercase;margin-top:2px}
+.menu{display:flex;align-items:center;gap:28px}
+.menu a.navlink{display:inline-flex;align-items:center;height:36px;line-height:1;font-size:14px;font-weight:450;color:var(--gray-500);cursor:pointer;transition:color .15s;position:relative}
+.menu a.navlink:hover,.menu a.navlink.active{color:var(--fg)}
+.lang-switch{display:flex;align-items:center;gap:0;border:1px solid var(--gray-200);border-radius:7px;overflow:hidden}
+.lang-switch button{background:none;border:none;border-left:1px solid var(--gray-200);font-family:var(--mono);font-size:11px;font-weight:500;color:var(--gray-400);padding:7px 9px;cursor:pointer;transition:.15s}
+.lang-switch button:first-child{border-left:none}
+.lang-switch button.on{background:var(--blue);color:#fff}
+.lang-switch button:hover:not(.on){color:var(--blue);background:var(--blue-50)}
+.burger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px}
+.burger span{width:22px;height:1.5px;background:var(--fg);transition:.3s}
+
+/* ---------- VIEWS ---------- */
+.view{display:none}
+.view.active{display:block;animation:fade .4s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* ---------- GRID BG ---------- */
+.gridbg{position:absolute;inset:0;background-image:linear-gradient(var(--gray-200) 1px,transparent 1px),linear-gradient(90deg,var(--gray-200) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(900px 400px at 50% 0%,#000,transparent 80%);opacity:.5;pointer-events:none}
+
+/* ---------- HERO ---------- */
+.hero{position:relative;padding:160px 0 90px;border-bottom:1px solid var(--gray-200);overflow:hidden}
+.hero-inner{position:relative;z-index:2;max-width:760px}
+.hero .eyebrow{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--gray-200);border-radius:30px;padding:6px 14px;background:var(--bg)}
+.hero .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.hero h1{font-size:clamp(38px,6.2vw,68px);font-weight:600;margin:26px 0 0;letter-spacing:-0.04em}
+.hero h1 .em{color:var(--blue)}
+.hero p.lead{font-size:clamp(16px,1.7vw,20px);color:var(--gray-500);max-width:580px;margin-top:24px;font-weight:400;letter-spacing:-0.01em}
+.hero-actions{display:flex;gap:12px;margin-top:34px;flex-wrap:wrap}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:70px;border:1px solid var(--gray-200);border-radius:10px;overflow:hidden;position:relative;z-index:2;background:var(--bg)}
+.hero-stats .s{padding:24px 26px;border-left:1px solid var(--gray-200)}
+.hero-stats .s:first-child{border-left:none}
+.hero-stats .s b{font-size:26px;font-weight:600;letter-spacing:-0.03em;display:block;color:var(--blue)}
+.hero-stats .s span{font-family:var(--mono);font-size:11px;letter-spacing:0.04em;color:var(--gray-400);text-transform:uppercase;margin-top:6px;display:block}
+.hero .topo{position:absolute;right:-2%;top:-6%;height:108%;width:54%;z-index:1;pointer-events:none;mask-image:linear-gradient(100deg,transparent 0%,#000 45%)}
+.hero .topo path{fill:none;stroke:var(--blue);stroke-width:1}
+@media(max-width:680px){.hero .topo{opacity:.5;width:80%}}
+.hero-photo{position:absolute;right:0;bottom:0;width:56%;height:70%;z-index:1;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 50%);mask-image:linear-gradient(90deg,transparent 0%,#000 50%)}
+.hero-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(98deg,var(--bg) 0%,var(--bg) 34%,rgba(255,255,255,0.60) 50%,rgba(255,255,255,0) 68%)}
+@media(max-width:760px){.hero-photo{width:108%;height:46%;opacity:.34;-webkit-mask-image:linear-gradient(0deg,#000 30%,transparent 90%);mask-image:linear-gradient(0deg,#000 30%,transparent 90%)}
+  .hero-scrim{background:linear-gradient(0deg,rgba(255,255,255,0) 0%,var(--bg) 42%)}}
+
+/* ---------- SECTIONS ---------- */
+section.block{padding:90px 0;border-bottom:1px solid var(--gray-200)}
+section.block.soft{background:var(--blue-50)}
+.section-head{max-width:640px;margin-bottom:48px}
+.section-head h2{font-size:clamp(26px,3.4vw,40px);margin-top:14px;font-weight:600;letter-spacing:-0.035em}
+.section-head p{color:var(--gray-500);font-size:16px;margin-top:14px;letter-spacing:-0.01em}
+
+/* value grid */
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--gray-200);border-radius:12px;overflow:hidden}
+.vcard{padding:34px 30px;border-left:1px solid var(--gray-200);border-top:1px solid var(--gray-200);transition:background .2s}
+.vcard:nth-child(-n+3){border-top:none}
+.vcard:nth-child(3n+1){border-left:none}
+.vcard:hover{background:var(--gray-50)}
+.vcard .ic{width:22px;height:22px;color:var(--blue);margin-bottom:20px;stroke-width:1.5}
+.vcard h3{font-size:17px;font-weight:600;margin-bottom:9px;letter-spacing:-0.02em}
+.vcard p{color:var(--gray-500);font-size:14px;letter-spacing:-0.01em}
+
+/* split about */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.split .visual{aspect-ratio:1/1;border:1px solid var(--gray-200);border-radius:12px;background:var(--gray-50);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.split .visual .gridbg{mask-image:radial-gradient(400px 400px at 50% 50%,#000,transparent 75%);opacity:.6}
+.split .visual svg{width:62%;position:relative;z-index:2}
+.about-list{margin-top:26px;display:flex;flex-direction:column}
+.about-list .li{display:flex;gap:14px;align-items:flex-start;padding:16px 0;border-top:1px solid var(--gray-200)}
+.about-list .li:first-child{border-top:none}
+.about-list .li .k{font-family:var(--mono);font-size:12px;color:var(--gray-400);margin-top:3px;flex:0 0 26px}
+.about-list .li b{font-weight:600;font-size:15px;display:block;letter-spacing:-0.01em}
+.about-list .li span{color:var(--gray-500);font-size:14px}
+
+/* dark band */
+.band{background:linear-gradient(135deg,var(--blue) 0%,var(--blue-700) 100%);color:#fff;border-radius:16px;padding:60px 54px;position:relative;overflow:hidden}
+.band .gridbg{background-image:linear-gradient(rgba(255,255,255,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.08) 1px,transparent 1px);mask-image:radial-gradient(700px 300px at 80% 0%,#000,transparent 75%);opacity:1}
+.band-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative;z-index:2}
+.band-grid .b{padding:0 26px;border-left:1px solid rgba(255,255,255,0.14)}
+.band-grid .b:first-child{padding-left:0;border-left:none}
+.band-grid .b b{font-size:30px;font-weight:600;letter-spacing:-0.03em;display:block}
+.band-grid .b span{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:0.03em;margin-top:8px;display:block;text-transform:uppercase}
+
+/* M&A */
+.mna{background:linear-gradient(135deg,var(--blue) 0%,var(--blue-700) 100%);color:#fff;border-radius:16px;padding:60px 54px;position:relative;overflow:hidden}
+.mna .gridbg{background-image:linear-gradient(rgba(255,255,255,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.08) 1px,transparent 1px);-webkit-mask-image:radial-gradient(700px 320px at 85% 0%,#000,transparent 75%);mask-image:radial-gradient(700px 320px at 85% 0%,#000,transparent 75%);opacity:1}
+.mna-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:54px;align-items:center;position:relative;z-index:2}
+.mna .eyebrow{color:#9FB6D2}
+.mna-intro h2{font-size:clamp(26px,3.2vw,36px);font-weight:600;letter-spacing:-0.03em;margin:12px 0 14px;color:#fff}
+.mna-intro p{color:rgba(255,255,255,0.78);font-size:15.5px;margin-bottom:26px}
+.btn-onblue{background:#fff;color:var(--blue);border-color:#fff}
+.btn-onblue:hover{background:rgba(255,255,255,0.88);border-color:rgba(255,255,255,0.88)}
+.mna-caps{display:flex;flex-direction:column}
+.cap{display:flex;gap:16px;padding:18px 0;border-top:1px solid rgba(255,255,255,0.14)}
+.cap:first-child{border-top:none}
+.capn{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,0.5);margin-top:3px;flex:0 0 24px}
+.cap b{display:block;font-weight:600;font-size:16px;letter-spacing:-0.01em}
+.cap span{color:rgba(255,255,255,0.66);font-size:14px}
+@media(max-width:900px){.mna-grid{grid-template-columns:1fr;gap:34px}.mna{padding:46px 32px}}
+@media(max-width:680px){.mna{padding:40px 24px}}
+
+/* process */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--gray-200);border-radius:12px;overflow:hidden}
+.step{padding:30px;border-left:1px solid var(--gray-200)}
+.step:first-child{border-left:none}
+.step .n{font-family:var(--mono);font-size:12px;color:var(--gray-400);margin-bottom:18px}
+.step h4{font-size:16px;font-weight:600;margin-bottom:8px;letter-spacing:-0.02em}
+.step p{color:var(--gray-500);font-size:13.5px}
+.soft .vgrid,.soft .steps{background:#fff}
+.soft .visual{background:#fff}
+
+/* CTA strip */
+.cta-strip{text-align:center;max-width:640px;margin:0 auto}
+.cta-strip h2{font-size:clamp(26px,3.6vw,38px);margin:14px 0 16px;font-weight:600;letter-spacing:-0.035em}
+.cta-strip p{color:var(--gray-500);font-size:16px;margin-bottom:28px}
+
+/* PRODUCTS */
+.prod-fam{margin-bottom:56px}
+.prod-fam:last-child{margin-bottom:0}
+.fam-head{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--gray-200);padding-bottom:16px;margin-bottom:26px;flex-wrap:wrap}
+.fam-head .fam-ix{font-family:var(--mono);font-size:12px;color:var(--gray-400)}
+.fam-head h3{font-size:22px;font-weight:600;letter-spacing:-0.025em}
+.fam-head p{color:var(--gray-500);font-size:14px;flex-basis:100%;max-width:560px;margin-top:2px}
+.pcards{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--gray-200);border-radius:12px;overflow:hidden}
+.pcard{padding:24px 22px;border-left:1px solid var(--gray-200);transition:background .2s;position:relative}
+.pcard:first-child{border-left:none}
+.pcard:hover{background:var(--gray-50)}
+.pcard .sym{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--blue);background:var(--blue-50);border:1px solid var(--gray-200);border-radius:8px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.pcard h4{font-size:16px;font-weight:600;margin-bottom:6px;letter-spacing:-0.02em}
+.pcard p{color:var(--gray-500);font-size:13px;line-height:1.45}
+.pcard .tag{margin-top:12px;display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:var(--gray-400)}
+/* products wrap when 4 cols too tight */
+@media(max-width:900px){.pcards{grid-template-columns:repeat(2,1fr)}
+  .pcard:nth-child(odd){border-left:none}
+  .pcard:nth-child(n+3){border-top:1px solid var(--gray-200)}}
+
+/* CONTACT */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--gray-200);border-radius:14px;overflow:hidden}
+.contact-left{padding:44px 42px;border-right:1px solid var(--gray-200)}
+.contact-right{padding:44px 42px;background:var(--gray-50)}
+.contact-row{display:flex;gap:14px;align-items:flex-start;padding:18px 0;border-top:1px solid var(--gray-200)}
+.contact-row:first-of-type{border-top:none;padding-top:0}
+.contact-row .ic{width:18px;height:18px;color:var(--blue);flex:0 0 18px;margin-top:3px;stroke-width:1.6}
+.contact-row .cl{font-family:var(--mono);font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--gray-400)}
+.contact-row .cv{font-size:16px;font-weight:500;margin-top:3px;letter-spacing:-0.01em;word-break:break-word}
+.contact-row .cv a{color:var(--blue);border-bottom:1px solid var(--gray-300)}
+.contact-row .cv a:hover{border-color:var(--blue)}
+.notice{display:flex;gap:11px;align-items:flex-start;margin-top:26px;padding-top:22px;border-top:1px solid var(--gray-200)}
+.notice .ic{width:17px;height:17px;color:var(--gray-400);flex:0 0 17px;margin-top:2px;stroke-width:1.6}
+.notice p{font-size:13px;color:var(--gray-500)}
+.field{margin-bottom:16px}
+.field label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:var(--gray-500);margin-bottom:8px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid var(--gray-200);border-radius:7px;padding:11px 13px;color:var(--fg);font-family:'Inter',sans-serif;font-size:14px;transition:.15s}
+body.lang-zh .field input,body.lang-zh .field select,body.lang-zh .field textarea{font-family:'Noto Sans SC',sans-serif}
+.field input::placeholder,.field textarea::placeholder{color:var(--gray-400)}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--fg)}
+.field textarea{resize:vertical;min-height:104px}
+.contact-form .btn{width:100%;margin-top:4px}
+.form-note{font-size:12px;color:var(--gray-400);margin-top:14px}
+
+/* FOOTER */
+footer{padding:64px 0 30px}
+.foot-top{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:36px;padding-bottom:44px;border-bottom:1px solid var(--gray-200)}
+.foot-about{font-size:14px;color:var(--gray-500);max-width:290px;margin-top:18px;line-height:1.65}
+.foot-col h5{font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--gray-400);margin-bottom:16px;font-weight:500}
+.foot-col a,.foot-col p{display:block;font-size:14px;color:var(--gray-500);margin-bottom:11px;cursor:pointer;letter-spacing:-0.01em}
+.foot-col a:hover{color:var(--fg)}
+.foot-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:24px;gap:16px;flex-wrap:wrap}
+.foot-bottom p{font-size:12.5px;color:var(--gray-400)}
+.foot-bottom .dis{font-size:12px;color:var(--gray-300);max-width:540px}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:900px){
+  .vgrid{grid-template-columns:1fr 1fr}
+  .vcard:nth-child(3n+1){border-left:1px solid var(--gray-200)}
+  .vcard:nth-child(-n+3){border-top:1px solid var(--gray-200)}
+  .vcard:nth-child(odd){border-left:none}
+  .vcard:nth-child(1),.vcard:nth-child(2){border-top:none}
+  .band-grid{grid-template-columns:1fr 1fr;gap:30px 0}
+  .band-grid .b:nth-child(3){padding-left:0;border-left:none}
+  .steps{grid-template-columns:1fr 1fr}
+  .step:nth-child(odd){border-left:none}
+  .step:nth-child(n+3){border-top:1px solid var(--gray-200)}
+  .split,.contact-grid{grid-template-columns:1fr}
+  .contact-left{border-right:none;border-bottom:1px solid var(--gray-200)}
+  .foot-top{grid-template-columns:1fr 1fr}
+}
+@media(max-width:680px){
+  .menu{position:fixed;top:0;right:0;height:100vh;width:80%;max-width:300px;background:var(--bg);border-left:1px solid var(--gray-200);
+    flex-direction:column;align-items:flex-start;justify-content:center;gap:22px;padding:36px;transform:translateX(100%);transition:.35s;z-index:120}
+  .menu.open{transform:translateX(0)}
+  .burger{display:flex;z-index:130}
+  .hero-stats{grid-template-columns:1fr}
+  .hero-stats .s{border-left:none;border-top:1px solid var(--gray-200)}
+  .hero-stats .s:first-child{border-top:none}
+  .vgrid{grid-template-columns:1fr}
+  .vcard{border-left:none!important;border-top:1px solid var(--gray-200)!important}
+  .vcard:nth-child(1){border-top:none!important}
+  .pcards{grid-template-columns:1fr}
+  .pcard{border-left:none;border-top:1px solid var(--gray-200)}
+  .pcard:first-child{border-top:none}
+  .band-grid{grid-template-columns:1fr}
+  .band-grid .b{padding-left:0;border-left:none}
+  .band{padding:42px 30px}
+  .steps{grid-template-columns:1fr}
+  .step{border-left:none;border-top:1px solid var(--gray-200)}
+  .step:first-child{border-top:none}
+  .foot-top{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body class="lang-es">
+
+<!-- ================= HEADER ================= -->
+<header id="header">
+  <div class="wrap nav">
+    <div class="brand" onclick="go('home')">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="6" width="14" height="2.6" rx="1.3" fill="#fff"/><rect x="5" y="10.7" width="10" height="2.6" rx="1.3" fill="#fff" opacity="0.85"/><rect x="5" y="15.4" width="6" height="2.6" rx="1.3" fill="#fff" opacity="0.7"/></svg></div>
+      <div class="bt"><b>ECB</b><small>Physical Commodities</small></div>
+    </div>
+    <nav class="menu" id="menu">
+      <a class="navlink active" data-view="home" onclick="go('home')" data-i18n="nav_home">Inicio</a>
+      <a class="navlink" data-view="products" onclick="go('products')" data-i18n="nav_products">Productos</a>
+      <a class="navlink" data-view="home" onclick="go('home','mna')" data-i18n="nav_mna">M&amp;A</a>
+      <a class="navlink" data-view="home" onclick="go('home','about')" data-i18n="nav_about">Nosotros</a>
+      <a class="navlink" data-view="contact" onclick="go('contact')" data-i18n="nav_contact">Contacto</a>
+      <div class="lang-switch">
+        <button data-l="es" class="on" onclick="setLang('es')">ES</button>
+        <button data-l="pt" onclick="setLang('pt')">PT</button>
+        <button data-l="en" onclick="setLang('en')">EN</button>
+        <button data-l="zh" onclick="setLang('zh')">中</button>
+      </div>
+      <button class="btn btn-pri btn-sm" onclick="go('contact')" data-i18n="nav_cta">Operar con nosotros</button>
+    </nav>
+    <div class="burger" id="burger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  </div>
+</header>
+
+<!-- ================= HOME ================= -->
+<div class="view active" id="view-home">
+
+  <section class="hero">
+    <div class="gridbg"></div>
+    <svg class="hero-photo" viewBox="0 0 620 440" preserveAspectRatio="xMaxYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="cFaceL" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#4C515A"/><stop offset="1" stop-color="#14171C"/></linearGradient>
+        <linearGradient id="cFaceR" x1="0.2" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B2F36"/><stop offset="1" stop-color="#0B0D10"/></linearGradient>
+        <linearGradient id="cBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5C636D"/><stop offset="1" stop-color="#2C3138"/></linearGradient>
+        <linearGradient id="cFront" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B1E24"/><stop offset="1" stop-color="#070809"/></linearGradient>
+        <linearGradient id="cHaze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C2C8D0" stop-opacity="0"/><stop offset="1" stop-color="#C2C8D0" stop-opacity="0.38"/></linearGradient>
+      </defs>
+      <!-- pila trasera (lejana, brumosa) -->
+      <polygon points="110,310 300,165 480,310 480,440 110,440" fill="url(#cBack)" opacity="0.55"/>
+      <!-- pila principal -->
+      <polygon points="150,440 330,92 408,250 285,440" fill="url(#cFaceL)"/>
+      <polygon points="330,92 620,258 620,440 285,440 408,250" fill="url(#cFaceR)"/>
+      <!-- texturas / facetas -->
+      <g stroke="#2E333B" stroke-width="1" opacity="0.5" fill="none">
+        <path d="M330 92 L362 260 L285 440"/>
+        <path d="M330 92 L300 250 L408 250"/>
+        <path d="M408 250 L510 332 L620 300"/>
+        <path d="M362 260 L470 360"/>
+      </g>
+      <!-- cresta iluminada -->
+      <polyline points="150,440 330,92 620,258" fill="none" stroke="#8A929E" stroke-width="1.6" opacity="0.45"/>
+      <!-- montículo frontal -->
+      <polygon points="215,440 360,335 505,440" fill="url(#cFront)" opacity="0.92"/>
+      <polygon points="360,335 505,440 360,440" fill="#0A0B0E" opacity="0.6"/>
+      <!-- transportador / shiploader -->
+      <polygon points="486,372 506,372 360,150 344,150" fill="#3A3F47" opacity="0.7"/>
+      <rect x="334" y="132" width="40" height="16" rx="2" fill="#454B54" opacity="0.7"/>
+      <line x1="430" y1="270" x2="430" y2="372" stroke="#3A3F47" stroke-width="3" opacity="0.6"/>
+      <!-- bruma de polvo -->
+      <rect x="0" y="232" width="620" height="208" fill="url(#cHaze)"/>
+      <ellipse cx="330" cy="96" rx="60" ry="20" fill="#C2C8D0" opacity="0.10"/>
+    </svg>
+    <div class="hero-scrim"></div>
+    <div class="wrap hero-inner">
+      <span class="eyebrow" data-i18n="hero_eyebrow">Trading de commodities físicos · Latinoamérica</span>
+      <h1 data-i18n="hero_title">Originación y comercialización de <span class="em">metales, minerales y fertilizantes</span></h1>
+      <p class="lead" data-i18n="hero_lead">Conectamos compradores y vendedores de commodities físicos en Latinoamérica.</p>
+      <div class="hero-actions">
+        <button class="btn btn-pri" onclick="go('products')" data-i18n="hero_cta1">Ver productos</button>
+        <button class="btn btn-sec" onclick="go('contact')" data-i18n="hero_cta2">Contactar</button>
+      </div>
+      <div class="hero-stats">
+        <div class="s"><b data-i18n="hm1_n">4</b><span data-i18n="hm1_l">Familias de producto</span></div>
+        <div class="s"><b data-i18n="hm2_n">LatAm</b><span data-i18n="hm2_l">Originación regional</span></div>
+        <div class="s"><b data-i18n="hm3_n">B2B</b><span data-i18n="hm3_l">Compra y venta física</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUE -->
+  <section class="block">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow" data-i18n="val_eyebrow">Qué hacemos</div>
+        <h2 data-i18n="val_title">Una contraparte sólida en cada etapa del flujo físico</h2>
+        <p data-i18n="val_sub">Estructuramos operaciones físicas de punta a punta: originación, logística internacional y cumplimiento en cada etapa.</p>
+      </div>
+      <div class="vgrid">
+        <div class="vcard">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v6l9 4 9-4V7"/><path d="M12 11v10"/></svg>
+          <h3 data-i18n="v1_t">Originación</h3>
+          <p data-i18n="v1_p">Acceso directo a productores y mineras en Latinoamérica, con relaciones de largo plazo y conocimiento del terreno.</p>
+        </div>
+        <div class="vcard">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12h4l2-6 4 14 3-9 2 3h5"/></svg>
+          <h3 data-i18n="v2_t">Comercialización</h3>
+          <p data-i18n="v2_p">Compra y venta física conectando oferta regional con compradores en Asia, Europa y América.</p>
+        </div>
+        <div class="vcard">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 17l4-4 3 3 7-7"/><path d="M14 9h4v4"/><rect x="2" y="3" width="20" height="18" rx="2"/></svg>
+          <h3 data-i18n="v3_t">Logística &amp; ejecución</h3>
+          <p data-i18n="v3_p">Coordinación de inspección, transporte e Incoterms (FOB / CIF / CFR) hasta puerto de destino.</p>
+        </div>
+        <div class="vcard">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+          <h3 data-i18n="v4_t">Cumplimiento</h3>
+          <p data-i18n="v4_p">Due diligence, KYC/AML e inspección independiente (SGS y equivalentes) en cada operación.</p>
+        </div>
+        <div class="vcard">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <h3 data-i18n="v5_t">Estructuración</h3>
+          <p data-i18n="v5_p">Diseño de contratos y términos comerciales adaptados a cada operación y contraparte.</p>
+        </div>
+        <div class="vcard">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v20M5 5h11a3 3 0 010 6H8a3 3 0 000 6h11"/></svg>
+          <h3 data-i18n="v6_t">Gestión de riesgo</h3>
+          <p data-i18n="v6_p">Entendemos el riesgo de precio, calendario y contraparte en cada operación física.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="block soft" id="about">
+    <div class="wrap split">
+      <div>
+        <div class="eyebrow" data-i18n="ab_eyebrow">Sobre ECB LLC</div>
+        <h2 style="font-size:clamp(26px,3.4vw,38px);margin-top:14px;font-weight:600;letter-spacing:-0.035em" data-i18n="ab_title">Trading físico con criterio de trader, no de intermediario</h2>
+        <p style="color:var(--gray-500);font-size:16px;margin-top:16px;letter-spacing:-0.01em" data-i18n="ab_p">ECB LLC nace de la experiencia operativa en mesas de commodities físicos. Entendemos el riesgo, el calendario y la logística de cada cargamento, y operamos con la disciplina de quien pone su nombre detrás de cada negocio.</p>
+        <div class="about-list">
+          <div class="li"><span class="k">01</span><span><b data-i18n="ab_l1_t">Foco en Latinoamérica</b><span data-i18n="ab_l1_p">Originación en una de las regiones mineras más relevantes del mundo.</span></span></div>
+          <div class="li"><span class="k">02</span><span><b data-i18n="ab_l2_t">Doble mano: compra y venta</b><span data-i18n="ab_l2_p">Operamos ambos lados del mercado físico, no solo intermediación.</span></span></div>
+          <div class="li"><span class="k">03</span><span><b data-i18n="ab_l3_t">Relaciones de largo plazo</b><span data-i18n="ab_l3_p">Construimos reputación operación a operación, con transparencia total.</span></span></div>
+        </div>
+      </div>
+      <div class="visual">
+        <div class="gridbg"></div>
+        <svg viewBox="0 0 300 300" fill="none" stroke="var(--blue)">
+          <circle cx="150" cy="150" r="118" stroke="var(--gray-300)"/>
+          <circle cx="150" cy="150" r="80" stroke="var(--gray-300)"/>
+          <path d="M150 32 L150 268 M32 150 L268 150" stroke="var(--gray-200)"/>
+          <path d="M70 200 L130 110 L175 158 L230 80" stroke="var(--blue)" stroke-width="2" fill="none"/>
+          <circle cx="70" cy="200" r="4" fill="var(--blue)" stroke="none"/><circle cx="130" cy="110" r="4" fill="var(--blue)" stroke="none"/>
+          <circle cx="175" cy="158" r="4" fill="var(--blue)" stroke="none"/><circle cx="230" cy="80" r="5" fill="var(--blue)" stroke="none"/>
+          <path d="M150 60 L240 150 L150 240 L60 150 Z" stroke="var(--gray-300)" fill="none"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- M&A -->
+  <section class="block" id="mna">
+    <div class="wrap">
+      <div class="mna">
+        <div class="gridbg"></div>
+        <div class="mna-grid">
+          <div class="mna-intro">
+            <div class="eyebrow" data-i18n="mna_eyebrow">Capacidad estratégica</div>
+            <h2 data-i18n="mna_title">M&amp;A y activos mineros estratégicos</h2>
+            <p data-i18n="mna_p">Originamos y asesoramos operaciones sobre activos mineros estratégicos en Latinoamérica —concesiones, proyectos y minas en operación— conectando capital internacional, en particular de Asia, con oportunidades de la región.</p>
+            <button class="btn btn-onblue" onclick="go('contact')" data-i18n="mna_cta">Conversemos</button>
+          </div>
+          <div class="mna-caps">
+            <div class="cap"><span class="capn">01</span><div><b data-i18n="mna_c1_t">Originación de activos</b><span data-i18n="mna_c1_p">Identificamos concesiones, proyectos y operaciones mineras con potencial estratégico.</span></div></div>
+            <div class="cap"><span class="capn">02</span><div><b data-i18n="mna_c2_t">Due diligence</b><span data-i18n="mna_c2_p">Evaluación técnica, legal y de mercado del activo y de la contraparte.</span></div></div>
+            <div class="cap"><span class="capn">03</span><div><b data-i18n="mna_c3_t">Estructuración y capital</b><span data-i18n="mna_c3_p">Diseñamos la transacción y la conectamos con capital internacional y acuerdos de offtake.</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DARK BAND -->
+  <section class="block">
+    <div class="wrap">
+      <div class="band">
+        <div class="gridbg"></div>
+        <div class="band-grid">
+          <div class="b"><b data-i18n="bd1_n">15+</b><span data-i18n="bd1_l">Productos físicos comercializados</span></div>
+          <div class="b"><b data-i18n="bd2_n">4</b><span data-i18n="bd2_l">Familias: metales, preciosos, minerales, fertilizantes</span></div>
+          <div class="b"><b data-i18n="bd4_n">KYC/AML</b><span data-i18n="bd4_l">Cumplimiento en cada contraparte</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="block soft">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow" data-i18n="pr_eyebrow">Cómo operamos</div>
+        <h2 data-i18n="pr_title">Del origen al puerto de destino</h2>
+        <p data-i18n="pr_sub">Un proceso ordenado y trazable que protege a ambas partes de la operación.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="n">01</div><h4 data-i18n="s1_t">Originación &amp; KYC</h4><p data-i18n="s1_p">Identificamos producto, volumen y contraparte, con due diligence completo.</p></div>
+        <div class="step"><div class="n">02</div><h4 data-i18n="s2_t">Estructuración</h4><p data-i18n="s2_p">Definimos precio, Incoterm, calidad y términos de pago del contrato.</p></div>
+        <div class="step"><div class="n">03</div><h4 data-i18n="s3_t">Inspección &amp; logística</h4><p data-i18n="s3_p">Inspección independiente, transporte y documentación de embarque.</p></div>
+        <div class="step"><div class="n">04</div><h4 data-i18n="s4_t">Liquidación</h4><p data-i18n="s4_p">Entrega y liquidación según los términos acordados. Operación cerrada.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA STRIP -->
+  <section class="block" style="border-bottom:none">
+    <div class="wrap">
+      <div class="cta-strip">
+        <div class="eyebrow" data-i18n="cta_eyebrow">¿Comprando o vendiendo?</div>
+        <h2 data-i18n="cta_title">Hablemos de sus necesidades comerciales</h2>
+        <p data-i18n="cta_sub">No realizamos ventas por la web. Para originar o colocar producto, escríbanos directamente.</p>
+        <button class="btn btn-pri" onclick="go('contact')" data-i18n="cta_btn">Ir a contacto</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ================= PRODUCTS ================= -->
+<div class="view" id="view-products">
+  <section class="block" style="padding-top:140px;border-bottom:none">
+    <div class="wrap">
+      <div class="section-head" style="max-width:680px">
+        <div class="eyebrow" data-i18n="p_eyebrow">Productos</div>
+        <h2 data-i18n="p_title">Portafolio de commodities físicos</h2>
+        <p data-i18n="p_sub">Comercializamos metales base, metales preciosos, minerales y graneles, y fertilizantes. Compra y venta física, en origen y destino. Volúmenes y calidades sujetos a contrato.</p>
+      </div>
+
+      <div class="prod-fam">
+        <div class="fam-head"><span class="fam-ix" data-i18n="f1_ix">Familia 01</span><h3 data-i18n="f1_t">Metales base</h3>
+          <p data-i18n="f1_p">Cátodos, concentrados y refinados conectados con fundiciones y demanda industrial global.</p></div>
+        <div class="pcards">
+          <div class="pcard"><div class="sym">Cu</div><h4 data-i18n="pr_cu">Cobre</h4><p data-i18n="pr_cu_p">Cátodos Grado A y concentrado de cobre.</p><span class="tag" data-i18n="tag_base">Metal base</span></div>
+          <div class="pcard"><div class="sym">Zn</div><h4 data-i18n="pr_zn">Zinc</h4><p data-i18n="pr_zn_p">Concentrado y zinc SHG.</p><span class="tag" data-i18n="tag_base">Metal base</span></div>
+          <div class="pcard"><div class="sym">Pb</div><h4 data-i18n="pr_pb">Plomo</h4><p data-i18n="pr_pb_p">Concentrado y lingote de plomo.</p><span class="tag" data-i18n="tag_base">Metal base</span></div>
+          <div class="pcard"><div class="sym">Sn</div><h4 data-i18n="pr_sn">Estaño</h4><p data-i18n="pr_sn_p">Concentrado y metal refinado.</p><span class="tag" data-i18n="tag_base">Metal base</span></div>
+        </div>
+      </div>
+
+      <div class="prod-fam">
+        <div class="fam-head"><span class="fam-ix" data-i18n="f2_ix">Familia 02</span><h3 data-i18n="f2_t">Metales preciosos</h3>
+          <p data-i18n="f2_p">Originación responsable de metales preciosos con trazabilidad y cumplimiento.</p></div>
+        <div class="pcards">
+          <div class="pcard"><div class="sym">Au</div><h4 data-i18n="pr_au">Oro</h4><p data-i18n="pr_au_p">Oro doré y barras según especificación.</p><span class="tag" data-i18n="tag_prec">Precioso</span></div>
+          <div class="pcard"><div class="sym">Ag</div><h4 data-i18n="pr_ag">Plata</h4><p data-i18n="pr_ag_p">Plata en barras y subproducto de concentrados.</p><span class="tag" data-i18n="tag_prec">Precioso</span></div>
+        </div>
+      </div>
+
+      <div class="prod-fam">
+        <div class="fam-head"><span class="fam-ix" data-i18n="f3_ix">Familia 03</span><h3 data-i18n="f3_t">Minerales y graneles</h3>
+          <p data-i18n="f3_p">Graneles secos y minerales estratégicos para siderurgia, baterías e industria.</p></div>
+        <div class="pcards">
+          <div class="pcard"><div class="sym">Fe</div><h4 data-i18n="pr_fe">Mineral de hierro</h4><p data-i18n="pr_fe_p">Fino y granulado, distintas leyes de Fe.</p><span class="tag" data-i18n="tag_bulk">Granel</span></div>
+          <div class="pcard"><div class="sym">Mn</div><h4 data-i18n="pr_mn">Manganeso</h4><p data-i18n="pr_mn_p">Mineral de manganeso para siderurgia.</p><span class="tag" data-i18n="tag_bulk">Granel</span></div>
+          <div class="pcard"><div class="sym">Li</div><h4 data-i18n="pr_li">Litio</h4><p data-i18n="pr_li_p">Concentrado de espodumeno y carbonato.</p><span class="tag" data-i18n="tag_min">Mineral</span></div>
+          <div class="pcard"><div class="sym">Al</div><h4 data-i18n="pr_bx">Bauxita</h4><p data-i18n="pr_bx_p">Bauxita metalúrgica para alúmina.</p><span class="tag" data-i18n="tag_bulk">Granel</span></div>
+        </div>
+      </div>
+
+      <div class="prod-fam">
+        <div class="fam-head"><span class="fam-ix" data-i18n="f4_ix">Familia 04</span><h3 data-i18n="f4_t">Fertilizantes</h3>
+          <p data-i18n="f4_p">Nutrientes para el agro latinoamericano, conectando producción global con demanda regional.</p></div>
+        <div class="pcards">
+          <div class="pcard"><div class="sym">N</div><h4 data-i18n="pr_urea">Urea</h4><p data-i18n="pr_urea_p">Granulada y perlada, 46% N.</p><span class="tag" data-i18n="tag_fert">Fertilizante</span></div>
+          <div class="pcard"><div class="sym">MAP</div><h4 data-i18n="pr_map">MAP</h4><p data-i18n="pr_map_p">Fosfato monoamónico.</p><span class="tag" data-i18n="tag_fert">Fertilizante</span></div>
+          <div class="pcard"><div class="sym">DAP</div><h4 data-i18n="pr_dap">DAP</h4><p data-i18n="pr_dap_p">Fosfato diamónico.</p><span class="tag" data-i18n="tag_fert">Fertilizante</span></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:60px;padding-top:50px;border-top:1px solid var(--gray-200)">
+        <p style="color:var(--gray-500);margin-bottom:22px" data-i18n="p_foot">¿Busca un producto específico o tiene volumen disponible para colocar?</p>
+        <button class="btn btn-pri" onclick="go('contact')" data-i18n="p_btn">Solicitar información</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ================= CONTACT ================= -->
+<div class="view" id="view-contact">
+  <section class="block" style="padding-top:140px;border-bottom:none">
+    <div class="wrap">
+      <div class="section-head" style="max-width:680px;margin-bottom:40px">
+        <div class="eyebrow" data-i18n="c_eyebrow">Contacto</div>
+        <h2 data-i18n="c_title">Hablemos de su operación</h2>
+        <p data-i18n="c_sub">No realizamos compras ni ventas a través del sitio. Para originar producto, colocar volumen o explorar una operación, escríbanos directamente y le respondemos a la brevedad.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-left">
+          <div class="contact-row">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+            <div><div class="cl" data-i18n="c_email_l">Correo</div><div class="cv"><a href="mailto:contact@ecb-llc.com">contact@ecb-llc.com</a></div></div>
+          </div>
+          <div class="contact-row">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            <div><div class="cl" data-i18n="c_region_l">Cobertura</div><div class="cv" data-i18n="c_region_v">Latinoamérica · Mercados globales</div></div>
+          </div>
+          <div class="contact-row">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3C9.5 5.5 9.5 18.5 12 21"/></svg>
+            <div><div class="cl" data-i18n="c_focus_l">Foco</div><div class="cv" data-i18n="c_focus_v">Metales · Minerales · Fertilizantes</div></div>
+          </div>
+          <div class="contact-row">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <div><div class="cl" data-i18n="c_hours_l">Respuesta</div><div class="cv" data-i18n="c_hours_v">En horario hábil (GMT-3)</div></div>
+          </div>
+          <div class="notice">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+            <p data-i18n="c_notice">Por la naturaleza del negocio, toda operación se cierra de forma directa y bilateral. Este sitio es informativo: no procesa transacciones.</p>
+          </div>
+        </div>
+        <div class="contact-right">
+          <form class="contact-form" onsubmit="submitForm(event)">
+            <div class="field"><label data-i18n="ff_name">Nombre y empresa</label><input type="text" required data-i18n-ph="ph_name" placeholder="Nombre · Compañía"></div>
+            <div class="field"><label data-i18n="ff_email">Correo</label><input type="email" required placeholder="nombre@empresa.com"></div>
+            <div class="field"><label data-i18n="ff_side">Tipo de interés</label>
+              <select>
+                <option data-i18n="ff_side1">Quiero comprar (demanda)</option>
+                <option data-i18n="ff_side2">Quiero vender (originación)</option>
+                <option data-i18n="ff_side4">M&amp;A / activos estratégicos</option>
+                <option data-i18n="ff_side3">Otro / consulta general</option>
+              </select>
+            </div>
+            <div class="field"><label data-i18n="ff_prod">Producto de interés</label>
+              <select>
+                <option data-i18n="ff_p_base">Metales base (Cu, Zn, Pb, Sn)</option>
+                <option data-i18n="ff_p_prec">Metales preciosos (Au, Ag)</option>
+                <option data-i18n="ff_p_min">Minerales y graneles (Fe, Mn, Li)</option>
+                <option data-i18n="ff_p_fert">Fertilizantes (Urea, MAP, DAP)</option>
+              </select>
+            </div>
+            <div class="field"><label data-i18n="ff_msg">Mensaje</label><textarea data-i18n-ph="ph_msg" placeholder="Volumen, calidad, Incoterm, puerto..."></textarea></div>
+            <button type="submit" class="btn btn-pri" data-i18n="ff_send">Enviar consulta</button>
+            <p class="form-note" data-i18n="ff_note">Al enviar, se abrirá su cliente de correo hacia contact@ecb-llc.com. No almacenamos datos en este sitio.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div>
+        <div class="brand" onclick="go('home')" style="cursor:pointer">
+          <div class="mark"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="6" width="14" height="2.6" rx="1.3" fill="#fff"/><rect x="5" y="10.7" width="10" height="2.6" rx="1.3" fill="#fff" opacity="0.85"/><rect x="5" y="15.4" width="6" height="2.6" rx="1.3" fill="#fff" opacity="0.7"/></svg></div>
+          <div class="bt"><b>ECB</b><small>Physical Commodities</small></div>
+        </div>
+        <p class="foot-about" data-i18n="fo_about">Trading de commodities físicos en Latinoamérica. Metales, minerales y fertilizantes — conectando compradores y vendedores.</p>
+      </div>
+      <div class="foot-col">
+        <h5 data-i18n="fo_nav">Navegación</h5>
+        <a onclick="go('home')" data-i18n="nav_home">Inicio</a>
+        <a onclick="go('products')" data-i18n="nav_products">Productos</a>
+        <a onclick="go('home','mna')" data-i18n="nav_mna">M&amp;A</a>
+        <a onclick="go('home','about')" data-i18n="nav_about">Nosotros</a>
+        <a onclick="go('contact')" data-i18n="nav_contact">Contacto</a>
+      </div>
+      <div class="foot-col">
+        <h5 data-i18n="fo_prod">Productos</h5>
+        <a onclick="go('products')" data-i18n="f1_t">Metales base</a>
+        <a onclick="go('products')" data-i18n="f2_t">Metales preciosos</a>
+        <a onclick="go('products')" data-i18n="f3_t">Minerales y graneles</a>
+        <a onclick="go('products')" data-i18n="f4_t">Fertilizantes</a>
+      </div>
+      <div class="foot-col">
+        <h5 data-i18n="fo_contact">Contacto</h5>
+        <a href="mailto:contact@ecb-llc.com">contact@ecb-llc.com</a>
+        <p data-i18n="c_region_v">Latinoamérica · Mercados globales</p>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <p>© <span id="year"></span> ECB LLC. <span data-i18n="fo_rights">Todos los derechos reservados.</span></p>
+      <p class="dis" data-i18n="fo_dis">Sitio de carácter informativo. No constituye oferta, recomendación de inversión ni canal de compraventa.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============ i18n ============ */
+const I18N = {
+  es:{
+    nav_home:"Inicio",nav_products:"Productos",nav_about:"Nosotros",nav_contact:"Contacto",nav_cta:"Operar con nosotros",
+    hero_eyebrow:"Trading de commodities físicos · Latinoamérica",
+    hero_title:'Originación y comercialización de <span class="em">metales, minerales y fertilizantes</span>',
+    hero_lead:"Conectamos compradores y vendedores de commodities físicos en Latinoamérica.",
+    hero_cta1:"Ver productos",hero_cta2:"Contactar",scroll:"Descubrir",
+    hm1_n:"4",hm1_l:"Familias de producto",hm2_n:"LatAm",hm2_l:"Originación regional",hm3_n:"B2B",hm3_l:"Compra y venta física",
+    val_eyebrow:"Qué hacemos",val_title:"Una contraparte sólida en cada etapa del flujo físico",
+    val_sub:"Estructuramos operaciones físicas de punta a punta: originación, logística internacional y cumplimiento en cada etapa.",
+    v1_t:"Originación",v1_p:"Acceso directo a productores y mineras en Latinoamérica, con relaciones de largo plazo y conocimiento del terreno.",
+    v2_t:"Comercialización",v2_p:"Compra y venta física conectando oferta regional con compradores en Asia, Europa y América.",
+    v3_t:"Logística & ejecución",v3_p:"Coordinación de inspección, transporte e Incoterms (FOB / CIF / CFR) hasta puerto de destino.",
+    v4_t:"Cumplimiento",v4_p:"Due diligence, KYC/AML e inspección independiente (SGS y equivalentes) en cada operación.",
+    v5_t:"Estructuración",v5_p:"Diseño de contratos y términos comerciales adaptados a cada operación y contraparte.",
+    v6_t:"Gestión de riesgo",v6_p:"Entendemos el riesgo de precio, calendario y contraparte en cada operación física.",
+    ab_eyebrow:"Sobre ECB LLC",ab_title:"Trading físico con criterio de trader, no de intermediario",
+    ab_p:"ECB LLC nace de la experiencia operativa en mesas de commodities físicos. Entendemos el riesgo, el calendario y la logística de cada cargamento, y operamos con la disciplina de quien pone su nombre detrás de cada negocio.",
+    ab_l1_t:"Foco en Latinoamérica",ab_l1_p:"Originación en una de las regiones mineras más relevantes del mundo.",
+    ab_l2_t:"Doble mano: compra y venta",ab_l2_p:"Operamos ambos lados del mercado físico, no solo intermediación.",
+    ab_l3_t:"Relaciones de largo plazo",ab_l3_p:"Construimos reputación operación a operación, con transparencia total.",
+    bd1_n:"15+",bd1_l:"Productos físicos comercializados",bd2_n:"4",bd2_l:"Familias: metales, preciosos, minerales, fertilizantes",
+    bd4_n:"KYC/AML",bd4_l:"Cumplimiento en cada contraparte",
+    pr_eyebrow:"Cómo operamos",pr_title:"Del origen al puerto de destino",pr_sub:"Un proceso ordenado y trazable que protege a ambas partes de la operación.",
+    s1_t:"Originación & KYC",s1_p:"Identificamos producto, volumen y contraparte, con due diligence completo.",
+    s2_t:"Estructuración",s2_p:"Definimos precio, Incoterm, calidad y términos de pago del contrato.",
+    s3_t:"Inspección & logística",s3_p:"Inspección independiente, transporte y documentación de embarque.",
+    s4_t:"Liquidación",s4_p:"Entrega y liquidación según los términos acordados. Operación cerrada.",
+    cta_eyebrow:"¿Comprando o vendiendo?",cta_title:"Hablemos de sus necesidades comerciales",
+    cta_sub:"No realizamos ventas por la web. Para originar o colocar producto, escríbanos directamente.",cta_btn:"Ir a contacto",
+    nav_mna:"M&amp;A",
+    mna_eyebrow:"Capacidad estratégica",mna_title:"M&amp;A y activos mineros estratégicos",
+    mna_p:"Originamos y asesoramos operaciones sobre activos mineros estratégicos en Latinoamérica —concesiones, proyectos y minas en operación— conectando capital internacional, en particular de Asia, con oportunidades de la región.",
+    mna_cta:"Conversemos",
+    mna_c1_t:"Originación de activos",mna_c1_p:"Identificamos concesiones, proyectos y operaciones mineras con potencial estratégico.",
+    mna_c2_t:"Due diligence",mna_c2_p:"Evaluación técnica, legal y de mercado del activo y de la contraparte.",
+    mna_c3_t:"Estructuración y capital",mna_c3_p:"Diseñamos la transacción y la conectamos con capital internacional y acuerdos de offtake.",
+    p_eyebrow:"Productos",p_title:"Portafolio de commodities físicos",
+    p_sub:"Comercializamos metales base, metales preciosos, minerales y graneles, y fertilizantes. Compra y venta física, en origen y destino. Volúmenes y calidades sujetos a contrato.",
+    f1_t:"Metales base",f1_ix:"Familia 01",f1_p:"Cátodos, concentrados y refinados conectados con fundiciones y demanda industrial global.",
+    f2_t:"Metales preciosos",f2_ix:"Familia 02",f2_p:"Originación responsable de metales preciosos con trazabilidad y cumplimiento.",
+    f3_t:"Minerales y graneles",f3_ix:"Familia 03",f3_p:"Graneles secos y minerales estratégicos para siderurgia, baterías e industria.",
+    f4_t:"Fertilizantes",f4_ix:"Familia 04",f4_p:"Nutrientes para el agro latinoamericano, conectando producción global con demanda regional.",
+    pr_cu:"Cobre",pr_cu_p:"Cátodos Grado A y concentrado de cobre.",pr_zn:"Zinc",pr_zn_p:"Concentrado y zinc SHG.",
+    pr_pb:"Plomo",pr_pb_p:"Concentrado y lingote de plomo.",pr_sn:"Estaño",pr_sn_p:"Concentrado y metal refinado.",
+    pr_au:"Oro",pr_au_p:"Oro doré y barras según especificación.",pr_ag:"Plata",pr_ag_p:"Plata en barras y subproducto de concentrados.",
+    pr_fe:"Mineral de hierro",pr_fe_p:"Fino y granulado, distintas leyes de Fe.",pr_mn:"Manganeso",pr_mn_p:"Mineral de manganeso para siderurgia.",
+    pr_li:"Litio",pr_li_p:"Concentrado de espodumeno y carbonato.",pr_bx:"Bauxita",pr_bx_p:"Bauxita metalúrgica para alúmina.",
+    pr_urea:"Urea",pr_urea_p:"Granulada y perlada, 46% N.",pr_map:"MAP",pr_map_p:"Fosfato monoamónico.",pr_dap:"DAP",pr_dap_p:"Fosfato diamónico.",
+    tag_base:"Metal base",tag_prec:"Precioso",tag_bulk:"Granel",tag_min:"Mineral",tag_fert:"Fertilizante",
+    p_foot:"¿Busca un producto específico o tiene volumen disponible para colocar?",p_btn:"Solicitar información",
+    c_eyebrow:"Contacto",c_title:"Hablemos de su operación",
+    c_sub:"No realizamos compras ni ventas a través del sitio. Para originar producto, colocar volumen o explorar una operación, escríbanos directamente y le respondemos a la brevedad.",
+    c_email_l:"Correo",c_region_l:"Cobertura",c_region_v:"Latinoamérica · Mercados globales",
+    c_focus_l:"Foco",c_focus_v:"Metales · Minerales · Fertilizantes",c_hours_l:"Respuesta",c_hours_v:"En horario hábil (GMT-3)",
+    c_notice:"Por la naturaleza del negocio, toda operación se cierra de forma directa y bilateral. Este sitio es informativo: no procesa transacciones.",
+    ff_name:"Nombre y empresa",ph_name:"Nombre · Compañía",ff_email:"Correo",ff_side:"Tipo de interés",
+    ff_side1:"Quiero comprar (demanda)",ff_side2:"Quiero vender (originación)",ff_side3:"Otro / consulta general",ff_side4:"M&amp;A / activos estratégicos",
+    ff_prod:"Producto de interés",ff_p_base:"Metales base (Cu, Zn, Pb, Sn)",ff_p_prec:"Metales preciosos (Au, Ag)",
+    ff_p_min:"Minerales y graneles (Fe, Mn, Li)",ff_p_fert:"Fertilizantes (Urea, MAP, DAP)",
+    ff_msg:"Mensaje",ph_msg:"Volumen, calidad, Incoterm, puerto...",ff_send:"Enviar consulta",
+    ff_note:"Al enviar, se abrirá su cliente de correo hacia contact@ecb-llc.com. No almacenamos datos en este sitio.",
+    fo_about:"Trading de commodities físicos en Latinoamérica. Metales, minerales y fertilizantes — conectando compradores y vendedores.",
+    fo_nav:"Navegación",fo_prod:"Productos",fo_contact:"Contacto",fo_rights:"Todos los derechos reservados.",
+    fo_dis:"Sitio de carácter informativo. No constituye oferta, recomendación de inversión ni canal de compraventa."
+  },
+  pt:{
+    nav_home:"Início",nav_products:"Produtos",nav_about:"Sobre",nav_contact:"Contato",nav_cta:"Operar conosco",
+    hero_eyebrow:"Trading de commodities físicas · América Latina",
+    hero_title:'Originação e comercialização de <span class="em">metais, minerais e fertilizantes</span>',
+    hero_lead:"Conectamos compradores e vendedores de commodities físicas na América Latina.",
+    hero_cta1:"Ver produtos",hero_cta2:"Contato",scroll:"Descobrir",
+    hm1_n:"4",hm1_l:"Famílias de produto",hm2_n:"LatAm",hm2_l:"Originação regional",hm3_n:"B2B",hm3_l:"Compra e venda física",
+    val_eyebrow:"O que fazemos",val_title:"Uma contraparte sólida em cada etapa do fluxo físico",
+    val_sub:"Estruturamos operações físicas de ponta a ponta: originação, logística internacional e compliance em cada etapa.",
+    v1_t:"Originação",v1_p:"Acesso direto a produtores e mineradoras na América Latina, com relações de longo prazo e conhecimento de campo.",
+    v2_t:"Comercialização",v2_p:"Compra e venda física conectando a oferta regional a compradores na Ásia, Europa e América.",
+    v3_t:"Logística & execução",v3_p:"Coordenação de inspeção, transporte e Incoterms (FOB / CIF / CFR) até o porto de destino.",
+    v4_t:"Compliance",v4_p:"Due diligence, KYC/AML e inspeção independente (SGS e equivalentes) em cada operação.",
+    v5_t:"Estruturação",v5_p:"Desenho de contratos e termos comerciais adaptados a cada operação e contraparte.",
+    v6_t:"Gestão de risco",v6_p:"Entendemos o risco de preço, prazo e contraparte em cada operação física.",
+    ab_eyebrow:"Sobre a ECB LLC",ab_title:"Trading físico com critério de trader, não de intermediário",
+    ab_p:"A ECB LLC nasce da experiência operacional em mesas de commodities físicas. Entendemos o risco, o calendário e a logística de cada carga, e operamos com a disciplina de quem coloca seu nome em cada negócio.",
+    ab_l1_t:"Foco na América Latina",ab_l1_p:"Originação em uma das regiões de mineração mais relevantes do mundo.",
+    ab_l2_t:"Dupla mão: compra e venda",ab_l2_p:"Operamos os dois lados do mercado físico, não apenas intermediação.",
+    ab_l3_t:"Relações de longo prazo",ab_l3_p:"Construímos reputação operação a operação, com total transparência.",
+    bd1_n:"15+",bd1_l:"Produtos físicos comercializados",bd2_n:"4",bd2_l:"Famílias: metais, preciosos, minerais, fertilizantes",
+    bd4_n:"KYC/AML",bd4_l:"Compliance em cada contraparte",
+    pr_eyebrow:"Como operamos",pr_title:"Da origem ao porto de destino",pr_sub:"Um processo ordenado e rastreável que protege ambas as partes da operação.",
+    s1_t:"Originação & KYC",s1_p:"Identificamos produto, volume e contraparte, com due diligence completo.",
+    s2_t:"Estruturação",s2_p:"Definimos preço, Incoterm, qualidade e termos de pagamento do contrato.",
+    s3_t:"Inspeção & logística",s3_p:"Inspeção independente, transporte e documentação de embarque.",
+    s4_t:"Liquidação",s4_p:"Entrega e liquidação conforme os termos acordados. Operação concluída.",
+    cta_eyebrow:"Comprando ou vendendo?",cta_title:"Vamos falar das suas necessidades comerciais",
+    cta_sub:"Não realizamos vendas pelo site. Para originar ou colocar produto, escreva-nos diretamente.",cta_btn:"Ir para contato",
+    nav_mna:"M&amp;A",
+    mna_eyebrow:"Capacidade estratégica",mna_title:"M&amp;A e ativos minerais estratégicos",
+    mna_p:"Originamos e assessoramos operações sobre ativos minerais estratégicos na América Latina —concessões, projetos e minas em operação— conectando capital internacional, em particular da Ásia, com oportunidades da região.",
+    mna_cta:"Vamos conversar",
+    mna_c1_t:"Originação de ativos",mna_c1_p:"Identificamos concessões, projetos e operações minerais com potencial estratégico.",
+    mna_c2_t:"Due diligence",mna_c2_p:"Avaliação técnica, jurídica e de mercado do ativo e da contraparte.",
+    mna_c3_t:"Estruturação e capital",mna_c3_p:"Desenhamos a transação e a conectamos com capital internacional e acordos de offtake.",
+    p_eyebrow:"Produtos",p_title:"Portfólio de commodities físicas",
+    p_sub:"Comercializamos metais base, metais preciosos, minerais e granéis, e fertilizantes. Compra e venda física, na origem e no destino. Volumes e qualidades sujeitos a contrato.",
+    f1_t:"Metais base",f1_ix:"Família 01",f1_p:"Catodos, concentrados e refinados conectados a fundições e à demanda industrial global.",
+    f2_t:"Metais preciosos",f2_ix:"Família 02",f2_p:"Originação responsável de metais preciosos com rastreabilidade e compliance.",
+    f3_t:"Minerais e granéis",f3_ix:"Família 03",f3_p:"Granéis secos e minerais estratégicos para siderurgia, baterias e indústria.",
+    f4_t:"Fertilizantes",f4_ix:"Família 04",f4_p:"Nutrientes para o agro latino-americano, conectando produção global à demanda regional.",
+    pr_cu:"Cobre",pr_cu_p:"Catodos Grau A e concentrado de cobre.",pr_zn:"Zinco",pr_zn_p:"Concentrado e zinco SHG.",
+    pr_pb:"Chumbo",pr_pb_p:"Concentrado e lingote de chumbo.",pr_sn:"Estanho",pr_sn_p:"Concentrado e metal refinado.",
+    pr_au:"Ouro",pr_au_p:"Ouro doré e barras conforme especificação.",pr_ag:"Prata",pr_ag_p:"Prata em barras e subproduto de concentrados.",
+    pr_fe:"Minério de ferro",pr_fe_p:"Fino e granulado, diferentes teores de Fe.",pr_mn:"Manganês",pr_mn_p:"Minério de manganês para siderurgia.",
+    pr_li:"Lítio",pr_li_p:"Concentrado de espodumênio e carbonato.",pr_bx:"Bauxita",pr_bx_p:"Bauxita metalúrgica para alumina.",
+    pr_urea:"Ureia",pr_urea_p:"Granulada e perolada, 46% N.",pr_map:"MAP",pr_map_p:"Fosfato monoamônico.",pr_dap:"DAP",pr_dap_p:"Fosfato diamônico.",
+    tag_base:"Metal base",tag_prec:"Precioso",tag_bulk:"Granel",tag_min:"Mineral",tag_fert:"Fertilizante",
+    p_foot:"Procura um produto específico ou tem volume disponível para colocar?",p_btn:"Solicitar informações",
+    c_eyebrow:"Contato",c_title:"Vamos falar da sua operação",
+    c_sub:"Não realizamos compras nem vendas pelo site. Para originar produto, colocar volume ou explorar uma operação, escreva-nos diretamente e responderemos em breve.",
+    c_email_l:"E-mail",c_region_l:"Cobertura",c_region_v:"América Latina · Mercados globais",
+    c_focus_l:"Foco",c_focus_v:"Metais · Minerais · Fertilizantes",c_hours_l:"Resposta",c_hours_v:"Em horário comercial (GMT-3)",
+    c_notice:"Pela natureza do negócio, toda operação é fechada de forma direta e bilateral. Este site é informativo: não processa transações.",
+    ff_name:"Nome e empresa",ph_name:"Nome · Empresa",ff_email:"E-mail",ff_side:"Tipo de interesse",
+    ff_side1:"Quero comprar (demanda)",ff_side2:"Quero vender (originação)",ff_side3:"Outro / consulta geral",ff_side4:"M&amp;A / ativos estratégicos",
+    ff_prod:"Produto de interesse",ff_p_base:"Metais base (Cu, Zn, Pb, Sn)",ff_p_prec:"Metais preciosos (Au, Ag)",
+    ff_p_min:"Minerais e granéis (Fe, Mn, Li)",ff_p_fert:"Fertilizantes (Ureia, MAP, DAP)",
+    ff_msg:"Mensagem",ph_msg:"Volume, qualidade, Incoterm, porto...",ff_send:"Enviar consulta",
+    ff_note:"Ao enviar, abrirá seu cliente de e-mail para contact@ecb-llc.com. Não armazenamos dados neste site.",
+    fo_about:"Trading de commodities físicas na América Latina. Metais, minerais e fertilizantes — conectando compradores e vendedores.",
+    fo_nav:"Navegação",fo_prod:"Produtos",fo_contact:"Contato",fo_rights:"Todos os direitos reservados.",
+    fo_dis:"Site de caráter informativo. Não constitui oferta, recomendação de investimento nem canal de compra e venda."
+  },
+  en:{
+    nav_home:"Home",nav_products:"Products",nav_about:"About",nav_contact:"Contact",nav_cta:"Work with us",
+    hero_eyebrow:"Physical commodities trading · Latin America",
+    hero_title:'Sourcing and trading of <span class="em">metals, minerals and fertilizers</span>',
+    hero_lead:"We connect physical commodity buyers and sellers across Latin America.",
+    hero_cta1:"View products",hero_cta2:"Contact us",scroll:"Discover",
+    hm1_n:"4",hm1_l:"Product families",hm2_n:"LatAm",hm2_l:"Regional origination",hm3_n:"B2B",hm3_l:"Physical buy & sell",
+    val_eyebrow:"What we do",val_title:"A solid counterparty at every stage of the physical flow",
+    val_sub:"We structure physical deals end to end: origination, international logistics and compliance at every stage.",
+    v1_t:"Origination",v1_p:"Direct access to producers and miners across Latin America, with long-term relationships and on-the-ground knowledge.",
+    v2_t:"Trading",v2_p:"Physical buying and selling connecting regional supply with buyers in Asia, Europe and the Americas.",
+    v3_t:"Logistics & execution",v3_p:"Coordination of inspection, transport and Incoterms (FOB / CIF / CFR) to destination port.",
+    v4_t:"Compliance",v4_p:"Due diligence, KYC/AML and independent inspection (SGS and equivalents) on every deal.",
+    v5_t:"Structuring",v5_p:"Contracts and commercial terms tailored to each operation and counterparty.",
+    v6_t:"Risk management",v6_p:"We understand price, timing and counterparty risk in every physical deal.",
+    ab_eyebrow:"About ECB LLC",ab_title:"Physical trading with a trader's judgment, not a broker's",
+    ab_p:"ECB LLC is built on hands-on experience at physical commodity desks. We understand the risk, timing and logistics of every cargo, and we operate with the discipline of those who put their name behind each deal.",
+    ab_l1_t:"Latin America focus",ab_l1_p:"Origination in one of the world's most relevant mining regions.",
+    ab_l2_t:"Both sides: buy and sell",ab_l2_p:"We trade both sides of the physical market, not just intermediation.",
+    ab_l3_t:"Long-term relationships",ab_l3_p:"We build reputation deal by deal, with full transparency.",
+    bd1_n:"15+",bd1_l:"Physical products traded",bd2_n:"4",bd2_l:"Families: metals, precious, minerals, fertilizers",
+    bd4_n:"KYC/AML",bd4_l:"Compliance on every counterparty",
+    pr_eyebrow:"How we operate",pr_title:"From source to destination port",pr_sub:"An orderly, traceable process that protects both sides of the deal.",
+    s1_t:"Origination & KYC",s1_p:"We identify product, volume and counterparty, with full due diligence.",
+    s2_t:"Structuring",s2_p:"We set price, Incoterm, quality and payment terms of the contract.",
+    s3_t:"Inspection & logistics",s3_p:"Independent inspection, transport and shipping documentation.",
+    s4_t:"Settlement",s4_p:"Delivery and settlement per agreed terms. Deal closed.",
+    cta_eyebrow:"Buying or selling?",cta_title:"Let's talk about your commercial needs",
+    cta_sub:"We do not sell through the website. To source or place product, write to us directly.",cta_btn:"Go to contact",
+    nav_mna:"M&amp;A",
+    mna_eyebrow:"Strategic capability",mna_title:"M&amp;A and strategic mining assets",
+    mna_p:"We originate and advise on transactions over strategic mining assets in Latin America —concessions, projects and operating mines— connecting international capital, particularly from Asia, with regional opportunities.",
+    mna_cta:"Let's talk",
+    mna_c1_t:"Asset origination",mna_c1_p:"We identify concessions, projects and mining operations with strategic potential.",
+    mna_c2_t:"Due diligence",mna_c2_p:"Technical, legal and market assessment of the asset and counterparty.",
+    mna_c3_t:"Structuring &amp; capital",mna_c3_p:"We structure the transaction and connect it with international capital and offtake agreements.",
+    p_eyebrow:"Products",p_title:"Physical commodities portfolio",
+    p_sub:"We trade base metals, precious metals, minerals and bulk, and fertilizers. Physical buying and selling, at origin and destination. Volumes and grades subject to contract.",
+    f1_t:"Base metals",f1_ix:"Family 01",f1_p:"Cathodes, concentrates and refined metal connected to smelters and global industrial demand.",
+    f2_t:"Precious metals",f2_ix:"Family 02",f2_p:"Responsible origination of precious metals with traceability and compliance.",
+    f3_t:"Minerals & bulk",f3_ix:"Family 03",f3_p:"Dry bulk and strategic minerals for steelmaking, batteries and industry.",
+    f4_t:"Fertilizers",f4_ix:"Family 04",f4_p:"Nutrients for Latin American agriculture, connecting global production with regional demand.",
+    pr_cu:"Copper",pr_cu_p:"Grade A cathodes and copper concentrate.",pr_zn:"Zinc",pr_zn_p:"Concentrate and SHG zinc.",
+    pr_pb:"Lead",pr_pb_p:"Lead concentrate and ingot.",pr_sn:"Tin",pr_sn_p:"Concentrate and refined metal.",
+    pr_au:"Gold",pr_au_p:"Doré gold and bars per specification.",pr_ag:"Silver",pr_ag_p:"Silver bars and concentrate by-product.",
+    pr_fe:"Iron ore",pr_fe_p:"Fines and lump, various Fe grades.",pr_mn:"Manganese",pr_mn_p:"Manganese ore for steelmaking.",
+    pr_li:"Lithium",pr_li_p:"Spodumene concentrate and carbonate.",pr_bx:"Bauxite",pr_bx_p:"Metallurgical bauxite for alumina.",
+    pr_urea:"Urea",pr_urea_p:"Granular and prilled, 46% N.",pr_map:"MAP",pr_map_p:"Monoammonium phosphate.",pr_dap:"DAP",pr_dap_p:"Diammonium phosphate.",
+    tag_base:"Base metal",tag_prec:"Precious",tag_bulk:"Bulk",tag_min:"Mineral",tag_fert:"Fertilizer",
+    p_foot:"Looking for a specific product or have volume to place?",p_btn:"Request information",
+    c_eyebrow:"Contact",c_title:"Let's talk about your deal",
+    c_sub:"We do not buy or sell through the site. To source product, place volume or explore a deal, write to us directly and we'll reply promptly.",
+    c_email_l:"Email",c_region_l:"Coverage",c_region_v:"Latin America · Global markets",
+    c_focus_l:"Focus",c_focus_v:"Metals · Minerals · Fertilizers",c_hours_l:"Response",c_hours_v:"Business hours (GMT-3)",
+    c_notice:"By the nature of the business, every deal is closed directly and bilaterally. This site is informational: it does not process transactions.",
+    ff_name:"Name and company",ph_name:"Name · Company",ff_email:"Email",ff_side:"Type of interest",
+    ff_side1:"I want to buy (demand)",ff_side2:"I want to sell (origination)",ff_side3:"Other / general inquiry",ff_side4:"M&amp;A / strategic assets",
+    ff_prod:"Product of interest",ff_p_base:"Base metals (Cu, Zn, Pb, Sn)",ff_p_prec:"Precious metals (Au, Ag)",
+    ff_p_min:"Minerals & bulk (Fe, Mn, Li)",ff_p_fert:"Fertilizers (Urea, MAP, DAP)",
+    ff_msg:"Message",ph_msg:"Volume, quality, Incoterm, port...",ff_send:"Send inquiry",
+    ff_note:"On submit, your email client will open to contact@ecb-llc.com. We store no data on this site.",
+    fo_about:"Physical commodities trading in Latin America. Metals, minerals and fertilizers — connecting buyers and sellers.",
+    fo_nav:"Navigation",fo_prod:"Products",fo_contact:"Contact",fo_rights:"All rights reserved.",
+    fo_dis:"Informational website. It does not constitute an offer, investment advice or a buy/sell channel."
+  },
+  zh:{
+    nav_home:"首页",nav_products:"产品",nav_about:"关于我们",nav_contact:"联系我们",nav_cta:"与我们合作",
+    hero_eyebrow:"实物大宗商品贸易 · 拉丁美洲",
+    hero_title:'<span class="em">金属、矿产与化肥</span>的采购与贸易',
+    hero_lead:"我们在拉丁美洲连接实物大宗商品的买家与卖家。",
+    hero_cta1:"查看产品",hero_cta2:"联系我们",scroll:"了解更多",
+    hm1_n:"4",hm1_l:"产品系列",hm2_n:"拉美",hm2_l:"区域采购",hm3_n:"B2B",hm3_l:"实物买卖",
+    val_eyebrow:"业务范围",val_title:"在实物流通的每个环节都是可靠的交易对手",
+    val_sub:"我们端到端地构建实物交易：采购、国际物流与每个环节的合规。",
+    v1_t:"采购",v1_p:"直接对接拉丁美洲的生产商与矿企，建立长期关系并深耕当地。",
+    v2_t:"贸易",v2_p:"实物买卖，将区域供应与亚洲、欧洲及美洲的买家相连接。",
+    v3_t:"物流与执行",v3_p:"协调检验、运输及贸易术语（FOB / CIF / CFR），直至目的港。",
+    v4_t:"合规",v4_p:"每笔交易均进行尽职调查、KYC/AML 及独立检验（SGS 等）。",
+    v5_t:"交易架构",v5_p:"为每笔交易和交易对手量身定制合同与商业条款。",
+    v6_t:"风险管理",v6_p:"我们了解每笔实物交易中的价格、时间与交易对手风险。",
+    ab_eyebrow:"关于 ECB LLC",ab_title:"以交易员的判断而非中间商的角度做实物贸易",
+    ab_p:"ECB LLC 源自实物大宗商品交易台的一线经验。我们了解每批货物的风险、节奏与物流，并以将自身信誉置于每笔交易之后的纪律开展业务。",
+    ab_l1_t:"聚焦拉丁美洲",ab_l1_p:"在全球最重要的矿业区域之一进行采购。",
+    ab_l2_t:"买卖双向",ab_l2_p:"我们参与实物市场的两端，而不仅是中介。",
+    ab_l3_t:"长期合作关系",ab_l3_p:"以完全透明的方式，逐笔交易建立信誉。",
+    bd1_n:"15+",bd1_l:"经营的实物产品",bd2_n:"4",bd2_l:"系列：金属、贵金属、矿产、化肥",
+    bd4_n:"KYC/AML",bd4_l:"对每个交易对手的合规审查",
+    pr_eyebrow:"运作方式",pr_title:"从产地到目的港",pr_sub:"有序且可追溯的流程，保护交易双方。",
+    s1_t:"采购与 KYC",s1_p:"确定产品、数量与交易对手，并完成全面尽职调查。",
+    s2_t:"交易架构",s2_p:"确定价格、贸易术语、品质及付款条件。",
+    s3_t:"检验与物流",s3_p:"独立检验、运输及装运单据。",
+    s4_t:"结算",s4_p:"按约定条款交货并结算，交易完成。",
+    cta_eyebrow:"在采购还是销售？",cta_title:"聊聊您的商业需求",
+    cta_sub:"本网站不进行线上销售。如需采购或销售产品，请直接联系我们。",cta_btn:"前往联系页",
+    nav_mna:"并购",
+    mna_eyebrow:"战略能力",mna_title:"并购与战略性矿业资产",
+    mna_p:"我们为拉丁美洲的战略性矿业资产——采矿权、矿业项目与在产矿山——提供发掘、撮合与顾问服务，连接国际资本（尤其是亚洲资本）与区域优质机会。",
+    mna_cta:"与我们洽谈",
+    mna_c1_t:"资产发掘",mna_c1_p:"发掘具有战略潜力的采矿权、项目与在产矿山。",
+    mna_c2_t:"尽职调查",mna_c2_p:"对资产及交易对手进行技术、法律与市场评估。",
+    mna_c3_t:"交易架构与资本",mna_c3_p:"设计交易架构，并对接国际资本与承购（offtake）协议。",
+    p_eyebrow:"产品",p_title:"实物大宗商品组合",
+    p_sub:"我们经营基本金属、贵金属、矿产与散货以及化肥。在产地与目的地进行实物买卖。数量与品质以合同为准。",
+    f1_t:"基本金属",f1_ix:"系列 01",f1_p:"阴极、精矿与精炼金属，对接冶炼厂及全球工业需求。",
+    f2_t:"贵金属",f2_ix:"系列 02",f2_p:"负责任地采购贵金属，具备可追溯性与合规性。",
+    f3_t:"矿产与散货",f3_ix:"系列 03",f3_p:"用于钢铁、电池及工业的干散货与战略矿产。",
+    f4_t:"化肥",f4_ix:"系列 04",f4_p:"面向拉美农业的养分，连接全球产能与区域需求。",
+    pr_cu:"铜",pr_cu_p:"A 级阴极铜与铜精矿。",pr_zn:"锌",pr_zn_p:"精矿与 SHG 锌。",
+    pr_pb:"铅",pr_pb_p:"铅精矿与铅锭。",pr_sn:"锡",pr_sn_p:"精矿与精炼金属。",
+    pr_au:"黄金",pr_au_p:"按规格的合质金（doré）与金条。",pr_ag:"白银",pr_ag_p:"银条及精矿副产品。",
+    pr_fe:"铁矿石",pr_fe_p:"粉矿与块矿，多种铁品位。",pr_mn:"锰",pr_mn_p:"用于钢铁的锰矿石。",
+    pr_li:"锂",pr_li_p:"锂辉石精矿与碳酸锂。",pr_bx:"铝土矿",pr_bx_p:"用于氧化铝的冶金级铝土矿。",
+    pr_urea:"尿素",pr_urea_p:"颗粒与粒状，含氮 46%。",pr_map:"MAP",pr_map_p:"磷酸一铵。",pr_dap:"DAP",pr_dap_p:"磷酸二铵。",
+    tag_base:"基本金属",tag_prec:"贵金属",tag_bulk:"散货",tag_min:"矿产",tag_fert:"化肥",
+    p_foot:"在寻找特定产品，或有可供销售的货量？",p_btn:"索取资料",
+    c_eyebrow:"联系我们",c_title:"聊聊您的交易",
+    c_sub:"本网站不进行买卖。如需采购产品、销售货量或洽谈交易，请直接联系我们，我们会尽快回复。",
+    c_email_l:"邮箱",c_region_l:"覆盖范围",c_region_v:"拉丁美洲 · 全球市场",
+    c_focus_l:"重点",c_focus_v:"金属 · 矿产 · 化肥",c_hours_l:"回复",c_hours_v:"工作时间（GMT-3）",
+    c_notice:"基于业务性质，所有交易均以直接、双边方式达成。本网站仅供参考，不处理任何交易。",
+    ff_name:"姓名与公司",ph_name:"姓名 · 公司",ff_email:"邮箱",ff_side:"意向类型",
+    ff_side1:"我要采购（需求）",ff_side2:"我要销售（供货）",ff_side3:"其他 / 一般咨询",ff_side4:"并购 / 战略性资产",
+    ff_prod:"意向产品",ff_p_base:"基本金属（Cu, Zn, Pb, Sn）",ff_p_prec:"贵金属（Au, Ag）",
+    ff_p_min:"矿产与散货（Fe, Mn, Li）",ff_p_fert:"化肥（尿素、MAP、DAP）",
+    ff_msg:"留言",ph_msg:"数量、品质、贸易术语、港口……",ff_send:"发送咨询",
+    ff_note:"提交后将打开您的邮件客户端发送至 contact@ecb-llc.com。本网站不存储任何数据。",
+    fo_about:"拉丁美洲的实物大宗商品贸易。金属、矿产与化肥——连接买家与卖家。",
+    fo_nav:"导航",fo_prod:"产品",fo_contact:"联系",fo_rights:"版权所有。",
+    fo_dis:"本网站仅供参考，不构成要约、投资建议或买卖渠道。"
+  }
+};
+
+let curLang='es';
+function setLang(l){
+  curLang=l;
+  document.documentElement.lang=l;
+  document.body.className='lang-'+l;
+  const d=I18N[l];
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    if(d[k]!==undefined) el.innerHTML=d[k];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const k=el.getAttribute('data-i18n-ph');
+    if(d[k]!==undefined) el.setAttribute('placeholder',d[k]);
+  });
+  document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('on',b.getAttribute('data-l')===l));
+}
+
+function go(view,anchor){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.navlink').forEach(n=>n.classList.toggle('active',n.getAttribute('data-view')===view));
+  closeMenu();
+  if(anchor){setTimeout(()=>{const el=document.getElementById(anchor);if(el)el.scrollIntoView({behavior:'smooth'});},60);}
+  else{window.scrollTo(0,0);}
+  onScroll();
+}
+
+function toggleMenu(){document.getElementById('menu').classList.toggle('open')}
+function closeMenu(){document.getElementById('menu').classList.remove('open')}
+function onScroll(){
+  const h=document.getElementById('header');
+  if(window.scrollY>10) h.classList.add('solid'); else h.classList.remove('solid');
+}
+window.addEventListener('scroll',onScroll);
+
+function submitForm(e){
+  e.preventDefault();
+  const f=e.target;
+  const name=f.querySelector('input[type=text]').value||'';
+  const email=f.querySelector('input[type=email]').value||'';
+  const sels=f.querySelectorAll('select');
+  const side=sels[0].value, prod=sels[1].value;
+  const msg=f.querySelector('textarea').value||'';
+  const subj=encodeURIComponent('['+prod+'] '+side);
+  const body=encodeURIComponent(name+' <'+email+'>\n\n'+side+' — '+prod+'\n\n'+msg);
+  window.location.href='mailto:contact@ecb-llc.com?subject='+subj+'&body='+body;
+}
+
+document.getElementById('year').textContent=new Date().getFullYear();
+setLang('es');
+onScroll();
+</script>
+</body>
+</html>
