@@ -1066,4 +1066,13 @@ function submitForm(e){
   const msg=f.querySelector('textarea').value||'';
   const subj=encodeURIComponent('['+prod+'] '+side);
   const body=encodeURIComponent(name+' <'+email+'>\n\n'+side+' — '+prod+'\n\n'+msg);
-  window.location.href='mailto:conta
+  window.location.href='mailto:contact@ecb-llc.com?subject='+subj+'&body='+body;
+}
+
+document.getElementById('year').textContent=new Date().getFullYear();
+setLang('zh');
+onScroll();
+</script>
+
+
+</body></html>
