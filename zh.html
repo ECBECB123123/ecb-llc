@@ -540,6 +540,7 @@ footer{padding:64px 0 30px}
             <h2 data-i18n="mna_title">并购与战略性矿业资产</h2>
             <p data-i18n="mna_p">我们为拉丁美洲的战略性矿业资产——采矿权、矿业项目与在产矿山——提供发掘、撮合与顾问服务，连接国际资本（尤其是亚洲资本）与区域优质机会。</p>
             <button class="btn btn-onblue" onclick="go('contact')" data-i18n="mna_cta">与我们洽谈</button>
+            <a class="btn btn-onblue" href="/zh/ma/" style="background:transparent;color:#fff;border-color:rgba(255,255,255,0.45);margin-left:10px">并购常见问题</a>
           </div>
           <div class="mna-caps">
             <div class="cap"><span class="capn">01</span><div><b data-i18n="mna_c1_t">资产发掘</b><span data-i18n="mna_c1_p">发掘具有战略潜力的采矿权、项目与在产矿山。</span></div></div>
@@ -1065,13 +1066,4 @@ function submitForm(e){
   const msg=f.querySelector('textarea').value||'';
   const subj=encodeURIComponent('['+prod+'] '+side);
   const body=encodeURIComponent(name+' <'+email+'>\n\n'+side+' — '+prod+'\n\n'+msg);
-  window.location.href='mailto:contact@ecb-llc.com?subject='+subj+'&body='+body;
-}
-
-document.getElementById('year').textContent=new Date().getFullYear();
-setLang('zh');
-onScroll();
-</script>
-
-
-</body></html>
+  window.location.href='mailto:conta
