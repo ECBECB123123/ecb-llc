@@ -1,0 +1,8 @@
+{
+  "trailingSlash": true,
+  "rewrites": [
+    { "source": "/en/", "destination": "/en.html" },
+    { "source": "/pt/", "destination": "/pt.html" },
+    { "source": "/zh/", "destination": "/zh.html" }
+  ]
+}
