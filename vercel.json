@@ -4,6 +4,7 @@
     { "source": "/en/", "destination": "/en.html" },
     { "source": "/pt/", "destination": "/pt.html" },
     { "source": "/zh/", "destination": "/zh.html" },
+    { "source": "/en/ma/", "destination": "/en-ma.html" },
     { "source": "/zh/ma/", "destination": "/zh-ma.html" }
   ]
 }

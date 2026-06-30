@@ -540,6 +540,7 @@ footer{padding:64px 0 30px}
             <h2 data-i18n="mna_title">M&amp;A and strategic mining assets</h2>
             <p data-i18n="mna_p">We originate and advise on transactions over strategic mining assets in Latin America —concessions, projects and operating mines— connecting international capital, particularly from Asia, with regional opportunities.</p>
             <button class="btn btn-onblue" onclick="go('contact')" data-i18n="mna_cta">Let's talk</button>
+            <a class="btn btn-onblue" href="/en/ma/" style="background:transparent;color:#fff;border-color:rgba(255,255,255,0.45);margin-left:10px">M&amp;A FAQ</a>
           </div>
           <div class="mna-caps">
             <div class="cap"><span class="capn">01</span><div><b data-i18n="mna_c1_t">Asset origination</b><span data-i18n="mna_c1_p">We identify concessions, projects and mining operations with strategic potential.</span></div></div>
@@ -1065,13 +1066,4 @@ function submitForm(e){
   const msg=f.querySelector('textarea').value||'';
   const subj=encodeURIComponent('['+prod+'] '+side);
   const body=encodeURIComponent(name+' <'+email+'>\n\n'+side+' — '+prod+'\n\n'+msg);
-  window.location.href='mailto:contact@ecb-llc.com?subject='+subj+'&body='+body;
-}
-
-document.getElementById('year').textContent=new Date().getFullYear();
-setLang('en');
-onScroll();
-</script>
-
-
-</body></html>
+  window.location.href='mailto:contact@ecb-

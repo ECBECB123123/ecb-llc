@@ -46,9 +46,21 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://ecb-llc.com/"/>
   </url>
   <url>
+    <loc>https://ecb-llc.com/en/ma/</loc>
+    <lastmod>2026-06-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ecb-llc.com/en/ma/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://ecb-llc.com/zh/ma/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ecb-llc.com/en/ma/"/>
+  </url>
+  <url>
     <loc>https://ecb-llc.com/zh/ma/</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ecb-llc.com/en/ma/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://ecb-llc.com/zh/ma/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ecb-llc.com/en/ma/"/>
   </url>
 </urlset>
